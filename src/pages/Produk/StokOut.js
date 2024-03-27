@@ -82,7 +82,7 @@ export default function StokOut({ navigation, route }) {
             flex: 1,
             backgroundColor: colors.white,
         }}>
-            <MyHeader judul="Stok Keluar" />
+            <MyHeader judul="Stok Keluar" onPress={() => navigation.goBack()} />
             <View style={{
                 flexDirection: 'row',
                 padding: 10,
@@ -337,7 +337,7 @@ export default function StokOut({ navigation, route }) {
                                         console.log(res.data);
                                         showMessage({
                                             type: 'success',
-                                            message: 'Stok keluar berhasil di tambah !'
+                                            message: 'Stok keluar berhasil di update !'
                                         })
                                     })
                                     setOpen(false);

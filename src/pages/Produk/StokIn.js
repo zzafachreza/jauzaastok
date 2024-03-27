@@ -82,7 +82,7 @@ export default function StokIn({ navigation, route }) {
             flex: 1,
             backgroundColor: colors.white,
         }}>
-            <MyHeader judul="Stok Masuk" />
+            <MyHeader judul="Stok Masuk" onPress={() => navigation.goBack()} />
             <View style={{
                 flexDirection: 'row',
                 padding: 10,
@@ -337,7 +337,7 @@ export default function StokIn({ navigation, route }) {
                                         console.log(res.data);
                                         showMessage({
                                             type: 'success',
-                                            message: 'Stok masuk berhasil di tambah !'
+                                            message: 'Stok masuk berhasil di update !'
                                         })
                                     })
                                     setOpen(false);

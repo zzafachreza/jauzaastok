@@ -21,6 +21,30 @@ import axios from 'axios';
 import moment from 'moment';
 
 export default function Home({ navigation, route }) {
+
+  const [stok, setStok] = useState({
+    masuk: 0,
+    keluar: 0,
+  });
+
+  const isFocused = useIsFocused();
+  useEffect(() => {
+
+    if (isFocused) {
+      __getStok();
+    }
+
+  }, [isFocused]);
+
+
+  const __getStok = () => {
+    axios.post(urlAPI + 'stok').then(res => {
+      console.log(res.data);
+      setStok(res.data)
+    })
+  }
+
+
   return (
     <ImageBackground source={require('../../assets/back.png')} style={{
       flex: 1,
@@ -73,7 +97,7 @@ export default function Home({ navigation, route }) {
                 fontFamily: fonts.secondary[600],
                 fontSize: MyDimensi / 1.5,
                 color: colors.success
-              }}>10</Text>
+              }}>{new Intl.NumberFormat().format(stok.masuk)}</Text>
             </View>
             <View style={{
               flex: 1,
@@ -88,7 +112,7 @@ export default function Home({ navigation, route }) {
                 fontFamily: fonts.secondary[600],
                 fontSize: MyDimensi / 1.5,
                 color: colors.danger
-              }}>10</Text>
+              }}>{new Intl.NumberFormat().format(stok.keluar)}</Text>
             </View>
           </View>
         </View>
