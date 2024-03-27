@@ -1,0 +1,23 @@
+export const colors = {
+  primary: '#0039AE',
+  secondary: '#DBE2FF',
+  tertiary: '#FF8C02',
+  foourty: '#146C94',
+  background: '#FAFAFA',
+  success: '#48A15A',
+  warning: '#F37120',
+  danger: '#BA1B1B',
+  black: 'black',
+  white: 'white',
+  border: '#CACCCE',
+  placeholder: '#8D8D8D',
+  zavalabs: '#6B7191',
+  myicon: '#4090C9',
+  mybutton: '#1466BF',
+  myback: '#E9F3F066',
+  myback2: '#00000080',
+  myback3: '#F4F6FF',
+  hijau: '#56BC6C',
+  kuning: '#D7A43A',
+  merah: '#B9454A'
+};
