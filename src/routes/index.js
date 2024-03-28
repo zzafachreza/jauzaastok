@@ -45,6 +45,9 @@ import {
   ProdukDetail,
   StokIn,
   StokOut,
+  ProudukAdd,
+  ProdukEdit,
+  ProdukMinimal,
 
 
 } from '../pages';
@@ -93,6 +96,32 @@ export default function Router() {
       <Stack.Screen
         name="StokOut"
         component={StokOut}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+
+      <Stack.Screen
+        name="ProudukAdd"
+        component={ProudukAdd}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="ProdukMinimal"
+        component={ProdukMinimal}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+
+      <Stack.Screen
+        name="ProdukEdit"
+        component={ProdukEdit}
         options={{
           headerShown: false,
         }}

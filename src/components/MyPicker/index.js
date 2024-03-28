@@ -31,7 +31,7 @@ export default function MyPicker({
         <Text
           style={{
             fontFamily: fonts.primary[400],
-            color: colors.white,
+            color: colors.black,
             left: 10,
             fontSize: MyDimensi / 4,
             ...styleLabel,
@@ -41,8 +41,9 @@ export default function MyPicker({
       </View>
 
       <View style={{
-        borderWidth: 1,
-        borderColor: colors.black,
+        borderRadius: 10,
+        borderWidth: 0.5,
+        borderColor: colors.border,
         backgroundColor: colors.white,
         borderRadius: 10,
         marginTop: 5,

@@ -41,6 +41,9 @@ import Produk from './Produk';
 import ProdukDetail from './Produk/ProdukDetail';
 import StokIn from './Produk/StokIn';
 import StokOut from './Produk/StokOut';
+import ProdukEdit from './Produk/ProdukEdit';
+import ProudukAdd from './Produk/ProudukAdd';
+import ProdukMinimal from './Produk/ProudukMinimal';
 
 
 
@@ -76,10 +79,11 @@ export {
   Royalti,
   Maps,
   ProdukDetail,
-
+  ProdukMinimal,
   StokIn,
   StokOut,
-
+  ProdukEdit,
+  ProudukAdd,
 
 
 

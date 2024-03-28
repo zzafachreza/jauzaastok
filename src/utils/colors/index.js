@@ -5,7 +5,7 @@ export const colors = {
   foourty: '#146C94',
   background: '#FAFAFA',
   success: '#48A15A',
-  warning: '#F37120',
+  warning: '#F4D201',
   danger: '#BA1B1B',
   black: 'black',
   white: 'white',

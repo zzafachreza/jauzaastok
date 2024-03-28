@@ -75,11 +75,14 @@ export default function ProdukDetail({ navigation, route }) {
           <MyList label="Nama Kategori" value={item.nama_kategori} />
           <MyList label="Nama Produk" value={item.nama_produk} />
           <MyList label="Kode Produk" value={item.kode_produk} />
-          <MyList label="Satuan" value={item.satuan} />
           <MyList label="Harga" value={'Rp ' + new Intl.NumberFormat().format(item.harga)} />
           <MyList label="Stok" value={item.stok} />
+          <MyList label="Minimal Stok" value={item.minimal_stok} />
+          <MyList label="Letak Rak" value={item.letak_rak} />
         </View>
       </ScrollView>
+
+
     </SafeAreaView>
   )
 }

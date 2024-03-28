@@ -11,7 +11,7 @@ import {
   ImageBackground,
 } from 'react-native';
 import { windowWidth, fonts, MyDimensi } from '../../utils/fonts';
-import { getData, MYAPP, storeData, urlAPI, urlApp, urlAvatar } from '../../utils/localStorage';
+import { apiURL, getData, MYAPP, storeData, urlAPI, urlApp, urlAvatar } from '../../utils/localStorage';
 import { colors } from '../../utils/colors';
 import { MyButton, MyGap, MyHeader } from '../../components';
 import { Icon } from 'react-native-elements';
@@ -38,7 +38,7 @@ export default function Home({ navigation, route }) {
 
 
   const __getStok = () => {
-    axios.post(urlAPI + 'stok').then(res => {
+    axios.post(apiURL + 'stok').then(res => {
       console.log(res.data);
       setStok(res.data)
     })
@@ -50,10 +50,39 @@ export default function Home({ navigation, route }) {
       flex: 1,
     }}>
       <View style={{
+        flexDirection: 'row',
+        justifyContent: 'flex-end'
+      }}>
+        <TouchableWithoutFeedback onPress={() => {
+          navigation.navigate('ProdukMinimal')
+        }}>
+          <View style={{
+            marginHorizontal: 10,
+            width: 50,
+            height: 50,
+            justifyContent: 'center',
+            alignItems: 'center',
+            position: 'relative'
+            // backgroundColor: colors.primary,
+          }}>
+
+            <Icon type='ionicon' size={30} name='notifications' color={colors.white} />
+            <View style={{
+              width: 10,
+              top: 10,
+              left: 15,
+              position: 'absolute',
+              borderRadius: 5,
+              height: 10,
+              backgroundColor: colors.danger
+            }} />
+          </View>
+        </TouchableWithoutFeedback>
+      </View>
+      <View style={{
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingTop: 10,
       }}>
 
         <Image source={require('../../assets/logo.png')} style={{

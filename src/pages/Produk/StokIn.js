@@ -171,6 +171,7 @@ export default function StokIn({ navigation, route }) {
                                     </View>
                                     <View style={{
                                         flex: 1,
+                                        paddingLeft: 10,
                                     }}>
                                         <Text style={{
                                             fontFamily: fonts.secondary[600],

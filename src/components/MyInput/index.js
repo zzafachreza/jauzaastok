@@ -71,7 +71,7 @@ export default function MyInput({
           placeholder={placeholder}
           secureTextEntry={secureTextEntry ? tutup : false}
           keyboardType={keyboardType}
-        
+
 
           value={value}
           onChangeText={onChangeText}
@@ -79,7 +79,8 @@ export default function MyInput({
           style={{
             backgroundColor: backgroundColor,
             borderRadius: 10,
-            borderWidth:0.5,
+            borderWidth: 0.5,
+            borderColor: colors.border,
             paddingLeft: 20,
             color: textColor,
             fontSize: MyDimensi / 4,

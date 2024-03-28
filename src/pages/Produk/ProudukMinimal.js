@@ -24,7 +24,7 @@ import ZavalabsScanner from 'react-native-zavalabs-scanner'
 import moment from 'moment';
 import SweetAlert from 'react-native-sweet-alert';
 
-export default function Produk({ navigation, route }) {
+export default function ProdukMinimal({ navigation, route }) {
     const [loading, setLoading] = useState(false);
     const inputRef = useRef();
     const [key, setKey] = useState('');
@@ -37,6 +37,8 @@ export default function Produk({ navigation, route }) {
         }
 
     }, [isFocused]);
+
+    const [cek, setCek] = useState('');
 
     const __scanBarcode = () => {
         ZavalabsScanner.showBarcodeReader(result => {
@@ -62,7 +64,7 @@ export default function Produk({ navigation, route }) {
 
     const __getProduct = () => {
         setLoading(true);
-        axios.post(apiURL + 'produk').then(res => {
+        axios.post(apiURL + 'produk_minimal').then(res => {
             console.log(res.data);
             setData(res.data);
             setTmp(res.data)
@@ -86,7 +88,7 @@ export default function Produk({ navigation, route }) {
                     fontFamily: fonts.secondary[800],
                     fontSize: MyDimensi / 3,
                     marginBottom: 10,
-                }}>Daftar Produk</Text>
+                }}>Daftar Produk minimal dan habis</Text>
             </View>
             <View style={{
                 flexDirection: 'row',
@@ -147,6 +149,64 @@ export default function Produk({ navigation, route }) {
                     flex: 1,
                     position: 'relative'
                 }}>
+                    <View style={{ flexDirection: 'row', marginHorizontal: 10, }}>
+                        <TouchableWithoutFeedback onPress={() => {
+                            setCek('');
+                            setData(tmp);
+                        }}>
+                            <View style={{
+                                marginHorizontal: 10,
+                                padding: 5,
+                                borderRadius: 2,
+                                backgroundColor: colors.primary
+                            }}>
+                                <Text style={{
+                                    color: colors.white,
+                                    fontFamily: fonts.secondary[600],
+                                    color: colors.white
+                                }}>Semua Habis & Menipis</Text>
+                            </View>
+                        </TouchableWithoutFeedback>
+
+                        <TouchableWithoutFeedback onPress={() => {
+                            setCek(0);
+                            setData(tmp.filter(i => i.tipe == 0));
+                        }}>
+                            <View style={{
+                                marginHorizontal: 10,
+                                padding: 5,
+                                borderRadius: 2,
+                                backgroundColor: colors.danger
+                            }}>
+                                <Text style={{
+                                    color: colors.white,
+                                    fontFamily: fonts.secondary[600],
+                                    color: colors.white
+                                }}>Habis</Text>
+                            </View>
+                        </TouchableWithoutFeedback>
+
+
+                        <TouchableWithoutFeedback onPress={() => {
+                            setCek(1);
+
+                            setData(tmp.filter(i => i.tipe == 1));
+                        }}>
+                            <View style={{
+                                marginHorizontal: 10,
+                                padding: 5,
+                                borderRadius: 2,
+                                backgroundColor: colors.warning
+                            }}>
+                                <Text style={{
+
+                                    fontFamily: fonts.secondary[600],
+                                    color: colors.black
+                                }}>Menipis</Text>
+                            </View>
+                        </TouchableWithoutFeedback>
+
+                    </View>
                     <FlatList data={data} renderItem={({ item, index }) => {
                         return (
                             <TouchableWithoutFeedback onPress={() => navigation.navigate('ProdukDetail', item)}>
@@ -202,29 +262,7 @@ export default function Produk({ navigation, route }) {
             }}>
                 <ActivityIndicator color={colors.primary} />
             </View>}
-            <View style={{
-                position: 'absolute',
-                bottom: 10,
-                right: 10,
-                justifyContent: 'center',
-                alignItems: 'center',
-                width: 60,
-                height: 60,
-                borderRadius: 30,
-                backgroundColor: colors.primary,
-            }}>
-                <TouchableOpacity onPress={() => navigation.navigate('ProudukAdd')} style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 30,
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                }}>
-                    <Icon type='ionicon' name='add' size={30} color={colors.white} />
-                </TouchableOpacity>
 
-
-            </View>
         </SafeAreaView >
     )
 }
