@@ -116,8 +116,51 @@ export default function ProudukAdd({ navigation, route }) {
                     marginBottom: 10,
                 }}>Upload Foto Produk</Text>
 
+                <MyGap jarak={10} />
+                <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center'
+                }}>
+                    <View style={{
+                        flex: 1
+                    }}>
+                        <MyInput value={kirim.kode_produk} label="Kode Produk" onChangeText={x => {
+                            setKirim({
+                                ...kirim,
+                                kode_produk: x
+                            })
+                        }} />
+                    </View>
+                    <TouchableWithoutFeedback onPress={() => {
+                        ZavalabsScanner.showBarcodeReader(result => {
+                            console.log('barcode : ', result);
 
+                            if (result !== null) {
 
+                                setKirim({
+                                    ...kirim,
+                                    kode_produk: result
+                                })
+                            }
+
+                        })
+                    }}>
+                        <View style={{
+                            marginTop: 25,
+                            height: 50,
+                            width: 60,
+                            marginLeft: 5,
+                            backgroundColor: colors.primary,
+                            borderRadius: 10,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+
+                        }}>
+                            <Icon type='ionicon' name='barcode-outline' color={colors.white} />
+                        </View>
+                    </TouchableWithoutFeedback>
+                </View>
+                <MyGap jarak={10} />
                 <MyPicker label="Kategori" data={kategori} onValueChange={x => {
                     setKirim({
                         ...kirim,
@@ -131,13 +174,7 @@ export default function ProudukAdd({ navigation, route }) {
                         nama_produk: x
                     })
                 }} />
-                <MyGap jarak={10} />
-                <MyInput label="Kode Produk" onChangeText={x => {
-                    setKirim({
-                        ...kirim,
-                        kode_produk: x
-                    })
-                }} />
+
                 <MyGap jarak={10} />
                 <MyInput label="Stok" keyboardType='number-pad' onChangeText={x => {
                     setKirim({
