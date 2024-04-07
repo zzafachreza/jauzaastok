@@ -160,7 +160,7 @@ export default function ({ navigation, route }) {
                                 <MyList label="Nama Lengkap" value={user.nama_lengkap} />
                                 <MyList label="Username" value={user.username} />
 
-
+                                <MyList label="Level" value={user.level} />
                             </View>
                             {/* data detail */}
                         </View>

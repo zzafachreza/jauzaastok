@@ -35,8 +35,13 @@ export default function StokIn({ navigation, route }) {
     const [tmp, setTmp] = useState([]);
     const [jumlah, setJumlah] = useState(0)
     const inputQty = useRef();
+    const [user, setUser] = useState({});
     useEffect(() => {
+        getData('user').then(uu => {
+            setUser(uu)
+        })
         __getProduct();
+
     }, []);
 
     const __scanBarcode = () => {
@@ -102,13 +107,13 @@ export default function StokIn({ navigation, route }) {
                         <TextInput ref={inputRef} onChangeText={x => {
                             setKey(x);
                             if (x.length > 0) {
-                                let filterd = data.filter(i => i.nama_produk.toLowerCase().indexOf(x.toLowerCase()) > -1);
+                                let filterd = data.filter(i => i.key.toLowerCase().indexOf(x.toLowerCase()) > -1);
                                 setData(filterd)
 
                             } else if (x.length == 0) {
                                 setData(tmp);
                             }
-                        }} placeholderTextColor={colors.border} placeholder='Cari berdasarkan nama' style={{
+                        }} placeholderTextColor={colors.border} placeholder='Cari berdasarkan nama atau barcode' style={{
                             flex: 1,
                             fontFamily: fonts.secondary[600],
                             fontSize: MyDimensi / 4
@@ -144,15 +149,19 @@ export default function StokIn({ navigation, route }) {
                     <FlatList data={data} renderItem={({ item, index }) => {
                         return (
                             <TouchableWithoutFeedback onPress={() => {
-                                setOpen(true);
+                                if (user.level == 'Admin') {
+                                    setOpen(true);
 
-                                setCek({
-                                    ...item,
-                                    index: index
-                                });
-                                setTimeout(() => {
-                                    inputQty.current.focus();
-                                }, 500)
+                                    setCek({
+                                        ...item,
+                                        index: index
+                                    });
+                                    setTimeout(() => {
+                                        inputQty.current.focus();
+                                    }, 500)
+                                } else {
+                                    Alert.alert(MYAPP, 'Hanya admin yang bisa ubah stok !')
+                                }
                             }}>
                                 <View style={{
                                     padding: 10,

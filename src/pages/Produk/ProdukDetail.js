@@ -22,6 +22,7 @@ import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture
 import { useIsFocused } from '@react-navigation/native';
 import axios from 'axios';
 import moment from 'moment';
+import { showMessage } from 'react-native-flash-message';
 
 export default function ProdukDetail({ navigation, route }) {
   const item = route.params;
@@ -54,6 +55,12 @@ export default function ProdukDetail({ navigation, route }) {
     )
   }
 
+  const [user, setUser] = useState({});
+  useEffect(() => {
+    getData('user').then(uu => {
+      setUser(uu)
+    })
+  }, [])
   return (
     <SafeAreaView style={{
       flex: 1,
@@ -79,7 +86,49 @@ export default function ProdukDetail({ navigation, route }) {
           <MyList label="Stok" value={item.stok} />
           <MyList label="Minimal Stok" value={item.minimal_stok} />
           <MyList label="Letak Rak" value={item.letak_rak} />
+          <MyGap jarak={20} />
+
+          {user.level == 'Admin' && <View style={{
+            flexDirection: 'row'
+          }}>
+            <View style={{
+              flex: 1,
+              paddingRight: 5,
+            }}>
+              <MyButton title="Edit" Icons="create" onPress={() => navigation.navigate('ProdukEdit', item)} warna={colors.primary} />
+            </View>
+            <View style={{
+              flex: 1,
+              paddingLeft: 5,
+            }}>
+              <MyButton onPress={() => {
+                Alert.alert(MYAPP, 'Apakah kamu akan hapus ini ?', [
+                  {
+                    text: 'TIDAK'
+                  },
+                  {
+                    text: 'HAPUS',
+                    onPress: () => {
+                      axios.post(apiURL + 'produk_delete', {
+                        id: item.id
+                      }).then(res => {
+                        console.log(res.data);
+                        if (res.data == 200) {
+                          showMessage({
+                            type: 'success',
+                            message: 'Data berhasil di hapus !'
+                          });
+                          navigation.goBack();
+                        }
+                      })
+                    }
+                  }
+                ])
+              }} title="Hapus" Icons="trash" warna={colors.danger} />
+            </View>
+          </View>}
         </View>
+
       </ScrollView>
 
 

@@ -140,27 +140,7 @@ export default function Login({ navigation }) {
                 />
               }
               {loading && <ActivityIndicator size="large" color={colors.primary} />}
-              {!loading &&
-                <TouchableWithoutFeedback onPress={() => navigation.navigate('Register')}>
-                  <View style={{
-                    marginTop: 10,
-                    backgroundColor: colors.white,
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                  }}>
-                    <Text style={{
-                      fontSize: MyDimensi / 4,
-                      fontFamily: fonts.primary[400],
-                      textAlign: 'center',
-                      color: colors.black
-                    }}>Belum memiliki Akun ? <Text style={{
-                      fontSize: MyDimensi / 4,
-                      fontFamily: fonts.primary[600],
-                      textAlign: 'center',
-                      color: colors.black
-                    }}>Daftar disini</Text></Text>
-                  </View>
-                </TouchableWithoutFeedback>}
+
               <View style={{ marginTop: '50%' }}></View>
             </View>
           </Animated.View>

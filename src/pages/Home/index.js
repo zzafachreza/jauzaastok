@@ -21,7 +21,7 @@ import axios from 'axios';
 import moment from 'moment';
 
 export default function Home({ navigation, route }) {
-
+  const [user, setUser] = useState({});
   const [stok, setStok] = useState({
     masuk: 0,
     keluar: 0,
@@ -41,6 +41,17 @@ export default function Home({ navigation, route }) {
     axios.post(apiURL + 'stok').then(res => {
       console.log(res.data);
       setStok(res.data)
+    })
+
+    getData('user').then(uu => {
+      console.log(uu.id)
+      axios.post(apiURL + 'get_user', {
+        id: uu.id
+      }).then(res => {
+        console.log(res.data);
+        setUser(res.data);
+        storeData('user', res.data)
+      })
     })
   }
 
@@ -159,7 +170,7 @@ export default function Home({ navigation, route }) {
               flex: 1,
               padding: 10,
             }}>
-              <TouchableWithoutFeedback onPress={() => navigation.navigate('StokIn')}>
+              <TouchableWithoutFeedback onPress={() => navigation.navigate('StokIn', user)}>
                 <View style={{
                   backgroundColor: colors.background,
                   // borderWidth: 1,
@@ -184,7 +195,7 @@ export default function Home({ navigation, route }) {
               flex: 1,
               padding: 10,
             }}>
-              <TouchableWithoutFeedback onPress={() => navigation.navigate('StokOut')}>
+              <TouchableWithoutFeedback onPress={() => navigation.navigate('StokOut', user)}>
                 <View style={{
                   backgroundColor: colors.background,
                   // borderWidth: 1,

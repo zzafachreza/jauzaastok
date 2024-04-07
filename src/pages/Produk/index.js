@@ -11,13 +11,16 @@ import {
     ImageBackground,
     TextInput,
     FlatList,
+    Modal,
+    ScrollView, TouchableOpacity, TouchableWithoutFeedback
+
 } from 'react-native';
-import { windowWidth, fonts, MyDimensi } from '../../utils/fonts';
+import { windowWidth, fonts, MyDimensi, windowHeight } from '../../utils/fonts';
 import { apiURL, getData, MYAPP, storeData, urlAPI, urlApp, urlAvatar } from '../../utils/localStorage';
 import { colors } from '../../utils/colors';
 import { MyButton, MyGap, MyHeader } from '../../components';
 import { Icon } from 'react-native-elements';
-import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
+
 import { useIsFocused } from '@react-navigation/native';
 import axios from 'axios';
 import ZavalabsScanner from 'react-native-zavalabs-scanner'
@@ -25,6 +28,7 @@ import moment from 'moment';
 import SweetAlert from 'react-native-sweet-alert';
 
 export default function Produk({ navigation, route }) {
+    const [modalVisible, setModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const inputRef = useRef();
     const [key, setKey] = useState('');
@@ -60,10 +64,35 @@ export default function Produk({ navigation, route }) {
         });
     }
 
+    const [RAK, setRAK] = useState([]);
+
+    const [user, setUser] = useState({});
+
+    const onlyUnique = (value, index, array) => {
+        return array.indexOf(value) === index;
+    }
+
     const __getProduct = () => {
         setLoading(true);
+
+        getData('user').then(uu => {
+            setUser(uu)
+        })
         axios.post(apiURL + 'produk').then(res => {
-            console.log(res.data);
+
+            let ARR = ['Tampilkan Semua'];
+
+            res.data.map((i, index) => {
+
+                ARR.push(i.letak_rak);
+
+
+            })
+
+            console.log(ARR.filter(onlyUnique));
+
+            setRAK(ARR.filter(onlyUnique))
+
             setData(res.data);
             setTmp(res.data)
         }).finally(() => {
@@ -107,13 +136,13 @@ export default function Produk({ navigation, route }) {
                         <TextInput value={key} ref={inputRef} onChangeText={x => {
                             setKey(x);
                             if (x.length > 0) {
-                                let filterd = data.filter(i => i.nama_produk.toLowerCase().indexOf(x.toLowerCase()) > -1);
+                                let filterd = data.filter(i => i.key.toLowerCase().indexOf(x.toLowerCase()) > -1);
                                 setData(filterd)
 
                             } else if (x.length == 0) {
                                 setData(tmp);
                             }
-                        }} placeholderTextColor={colors.border} placeholder='Cari berdasarkan nama' style={{
+                        }} placeholderTextColor={colors.border} placeholder='Cari berdasarkan nama atau barcode' style={{
                             flex: 1,
                             fontFamily: fonts.secondary[600],
                             fontSize: MyDimensi / 4
@@ -137,6 +166,21 @@ export default function Produk({ navigation, route }) {
                         justifyContent: 'center'
                     }}>
                         <Icon type='ionicon' name='barcode-outline' />
+                    </View>
+                </TouchableWithoutFeedback>
+                <TouchableWithoutFeedback onPress={() => {
+                    setModalVisible(true);
+                }}>
+                    <View style={{
+                        marginLeft: 5,
+                        borderWidth: 1,
+                        borderRadius: 10,
+                        alignItems: 'center',
+                        paddingHorizontal: 10,
+                        height: 50,
+                        justifyContent: 'center'
+                    }}>
+                        <Icon type='ionicon' name='funnel-outline' />
                     </View>
                 </TouchableWithoutFeedback>
             </View>
@@ -225,6 +269,65 @@ export default function Produk({ navigation, route }) {
 
 
             </View>
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    setModalVisible(!modalVisible);
+                }}>
+                <View style={{
+                    flex: 1,
+                    justifyContent: 'flex-end',
+
+                }}>
+                    <View style={{
+                        borderTopWidth: 1,
+                        borderTopColor: colors.border,
+                        padding: 20,
+                        height: windowHeight / 2,
+                        backgroundColor: '#FDFDFD',
+                    }}>
+                        <Text style={{
+                            fontFamily: fonts.secondary[600],
+                            fontSize: 20,
+                        }}>Letak Rak</Text>
+
+                        <ScrollView>
+                            <FlatList data={RAK} renderItem={({ item }) => {
+                                return (
+                                    <TouchableWithoutFeedback onPress={() => {
+                                        if (item == 'Tampilkan Semua') {
+                                            setData(tmp)
+                                        } else {
+
+                                            setData(tmp.filter(i => i.letak_rak == item))
+                                        }
+                                        setModalVisible(false)
+                                    }}>
+                                        <View style={{
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            padding: 5,
+                                            borderRadius: 10,
+                                            borderWidth: 1,
+                                            marginVertical: 5,
+                                        }}>
+                                            <Icon type='ionicon' name='chevron-forward-circle-outline' />
+                                            <Text style={{
+                                                fontFamily: fonts.secondary[600],
+                                                fontSize: 14,
+                                                left: 5,
+                                            }}>{item}</Text>
+                                        </View>
+                                    </TouchableWithoutFeedback>
+                                )
+                            }} />
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView >
     )
 }
