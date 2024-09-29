@@ -35,6 +35,7 @@ export default function Produk({ navigation, route }) {
     const [data, setData] = useState([]);
     const [tmp, setTmp] = useState([]);
     const isFocused = useIsFocused();
+
     useEffect(() => {
         if (isFocused) {
             __getProduct();
@@ -246,29 +247,32 @@ export default function Produk({ navigation, route }) {
             }}>
                 <ActivityIndicator color={colors.primary} />
             </View>}
-            <View style={{
-                position: 'absolute',
-                bottom: 10,
-                right: 10,
-                justifyContent: 'center',
-                alignItems: 'center',
-                width: 60,
-                height: 60,
-                borderRadius: 30,
-                backgroundColor: colors.primary,
-            }}>
-                <TouchableOpacity onPress={() => navigation.navigate('ProudukAdd')} style={{
+
+            {user.level == 'Admin' &&
+                <View style={{
+                    position: 'absolute',
+                    bottom: 10,
+                    right: 10,
+                    justifyContent: 'center',
+                    alignItems: 'center',
                     width: 60,
                     height: 60,
                     borderRadius: 30,
-                    justifyContent: 'center',
-                    alignItems: 'center'
+                    backgroundColor: colors.primary,
                 }}>
-                    <Icon type='ionicon' name='add' size={30} color={colors.white} />
-                </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('ProudukAdd')} style={{
+                        width: 60,
+                        height: 60,
+                        borderRadius: 30,
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}>
+                        <Icon type='ionicon' name='add' size={30} color={colors.white} />
+                    </TouchableOpacity>
 
 
-            </View>
+                </View>
+            }
 
             <Modal
                 animationType="slide"

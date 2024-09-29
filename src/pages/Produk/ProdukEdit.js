@@ -45,7 +45,8 @@ export default function ProudukEdit({ navigation, route }) {
     }, []);
 
     const sendServer = () => {
-        // setLoading(true);
+        console.log(kirim);
+        setLoading(true);
         axios.post(apiURL + 'produk_update', kirim).then(res => {
             console.log(res.data);
             if (res.data.status == 200) {
