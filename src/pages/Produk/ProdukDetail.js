@@ -91,12 +91,7 @@ export default function ProdukDetail({ navigation, route }) {
           {user.level == 'Admin' && <View style={{
             flexDirection: 'row'
           }}>
-            <View style={{
-              flex: 1,
-              paddingRight: 5,
-            }}>
-              <MyButton title="Edit" Icons="create" onPress={() => navigation.replace('ProdukEdit', item)} warna={colors.primary} />
-            </View>
+
             <View style={{
               flex: 1,
               paddingLeft: 5,

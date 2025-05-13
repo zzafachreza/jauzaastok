@@ -1,31 +1,29 @@
-import React, { useEffect, useRef, useState } from 'react';
+
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
-    StyleSheet,
-    Text,
-    View,
     SafeAreaView,
-    Image,
-    Linking,
-    Alert,
-    ActivityIndicator,
-    ImageBackground,
+    View,
+    Text,
     TextInput,
     FlatList,
+    ActivityIndicator,
     Modal,
-    ScrollView, TouchableOpacity, TouchableWithoutFeedback
-
+    ScrollView,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    StyleSheet,
 } from 'react-native';
-import { windowWidth, fonts, MyDimensi, windowHeight } from '../../utils/fonts';
-import { apiURL, getData, MYAPP, storeData, urlAPI, urlApp, urlAvatar } from '../../utils/localStorage';
+import { windowWidth, windowHeight, fonts, MyDimensi } from '../../utils/fonts';
+import { apiURL, getData, MYAPP } from '../../utils/localStorage';
 import { colors } from '../../utils/colors';
 import { MyButton, MyGap, MyHeader } from '../../components';
 import { Icon } from 'react-native-elements';
-
 import { useIsFocused } from '@react-navigation/native';
 import axios from 'axios';
-import ZavalabsScanner from 'react-native-zavalabs-scanner'
-import moment from 'moment';
+import ZavalabsScanner from 'react-native-zavalabs-scanner';
 import SweetAlert from 'react-native-sweet-alert';
+import FastImage from 'react-native-fast-image';
+import { Alert } from 'react-native';
 
 export default function Produk({ navigation, route }) {
     const [modalVisible, setModalVisible] = useState(false);
@@ -33,307 +31,390 @@ export default function Produk({ navigation, route }) {
     const inputRef = useRef();
     const [key, setKey] = useState('');
     const [data, setData] = useState([]);
-    const [tmp, setTmp] = useState([]);
+    const [filteredData, setFilteredData] = useState([]);
+    const [rakOptions, setRakOptions] = useState([]);
+    const [user, setUser] = useState({});
     const isFocused = useIsFocused();
+    const [searchKeyword, setSearchKeyword] = useState('');
+
+    const [limit] = useState(25);
+    const [offset, setOffset] = useState(0);
+    const [hasNext, setHasNext] = useState(true);
+    const [isLoadMore, setIsLoadMore] = useState(false);
+
+    const [selectedItems, setSelectedItems] = useState([]);
+
+    const toggleSelect = (itemId) => {
+        setSelectedItems(prev =>
+            prev.includes(itemId)
+                ? prev.filter(id => id !== itemId)
+                : [...prev, itemId]
+        );
+    };
+
+
+    const handleLoadMore = () => {
+        if (!loading && !isLoadMore && hasNext) {
+            fetchData();
+        }
+    };
+
 
     useEffect(() => {
-        if (isFocused) {
-            __getProduct();
+        fetchData(true);
+    }, []);
+
+    const fetchData = async (reset = false, keyword = '') => {
+        if (!hasNext && !reset) return;
+
+        if (reset) {
+            setOffset(0);
+            setHasNext(true);
         }
 
-    }, [isFocused]);
+        if (!reset) setIsLoadMore(true);
+        else setLoading(true);
+
+        try {
+            const userData = await getData('user');
+            setUser(userData);
+
+            const response = await axios.post(apiURL + 'produk', {
+                limit,
+                offset: reset ? 0 : offset,
+                keyword: keyword ?? '',
+            });
+
+            const newData = response.data || [];
+
+            if (reset) {
+                setData(newData);
+                setFilteredData(newData);
+            } else {
+                const combined = [...data, ...newData];
+                setData(combined);
+                setFilteredData(combined);
+            }
+
+            if (newData.length < limit) {
+                setHasNext(false);
+            } else {
+                setOffset(prev => prev + limit);
+            }
+        } catch (error) {
+            console.error('Error loading data:', error);
+        } finally {
+            if (!reset) setIsLoadMore(false);
+            else setLoading(false);
+        }
+    };
+
+
+
+    const handleSearch = (text) => {
+        setKey(text);
+        fetchData(true, text); // panggil server berdasarkan input keyword
+    };
 
     const __scanBarcode = () => {
         ZavalabsScanner.showBarcodeReader(result => {
-            console.log('barcode : ', result);
-
-            if (result !== null) {
-                let filterd = data.filter(i => i.kode_produk.toLowerCase().indexOf(result.toString().toLowerCase()) > -1);
-                console.log(filterd);
-                if (filterd.length > 0) {
-                    navigation.navigate('ProdukDetail', filterd[0]);
+            if (result) {
+                const found = data.find(item => item.kode_produk.toLowerCase().includes(result.toLowerCase()));
+                if (found) {
+                    navigation.navigate('ProdukDetail', found);
                 } else {
                     SweetAlert.showAlertWithOptions({
                         title: MYAPP,
-                        subTitle: 'Maaf barcode tidak ditemukan !',
-                        style: 'error  ',
-                        cancellable: true
+                        subTitle: 'Maaf barcode tidak ditemukan!',
+                        style: 'error',
+                        cancellable: true,
                     });
                 }
             }
-
         });
-    }
+    };
 
-    const [RAK, setRAK] = useState([]);
+    const renderItem = useCallback(({ item }) => {
+        const isChecked = selectedItems.includes(item.id);
 
-    const [user, setUser] = useState({});
+        return (
+            <View style={styles.itemContainer}>
+                <TouchableOpacity onPress={() => toggleSelect(item.id)}>
+                    <View style={[styles.checkbox, isChecked && styles.checkboxChecked]}>
+                        {isChecked && <Text style={styles.checkboxTick}>✓</Text>}
+                    </View>
+                </TouchableOpacity>
 
-    const onlyUnique = (value, index, array) => {
-        return array.indexOf(value) === index;
-    }
+                <FastImage
+                    resizeMode={FastImage.resizeMode.contain}
+                    style={styles.itemImage}
+                    source={{
+                        uri: item.image,
+                        priority: FastImage.priority.normal,
+                        cache: FastImage.cacheControl.immutable,
+                    }}
+                />
 
-    const __getProduct = () => {
-        setLoading(true);
+                <View style={styles.itemTextContainer}>
+                    <Text style={styles.itemTitle}>{item.nama_produk}</Text>
+                    <Text style={styles.itemSubtitle}>
+                        Rp {new Intl.NumberFormat().format(item.harga)} | {item.kode_produk}
+                    </Text>
+                    <Text style={[
+                        styles.itemStock,
+                        {
+                            color: item.stok <= item.minimal_stok && item.stok > 0 ? colors.warning
+                                : item.stok == 0 ? colors.danger
+                                    : colors.black,
+                        }
+                    ]}>
+                        {item.stok}
+                    </Text>
 
-        getData('user').then(uu => {
-            setUser(uu)
-        })
-        axios.post(apiURL + 'produk').then(res => {
+                    <TouchableOpacity
+                        style={styles.detailButton}
+                        onPress={() => navigation.navigate('ProdukDetail', item)}
+                    >
+                        <Text style={styles.detailButtonText}>Detail</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
+    }, [selectedItems]);
 
-            let ARR = ['Tampilkan Semua'];
-
-            res.data.map((i, index) => {
-
-                ARR.push(i.letak_rak);
-
-
-            })
-
-            console.log(ARR.filter(onlyUnique));
-
-            setRAK(ARR.filter(onlyUnique))
-
-            setData(res.data);
-            setTmp(res.data)
-        }).finally(() => {
-            setLoading(false)
-        })
-    }
 
     return (
-        <SafeAreaView style={{
-            flex: 1,
-            backgroundColor: colors.white,
-        }}>
-
-
-
-            <View style={{
-                padding: 10,
-            }}>
-                <Text style={{
-                    fontFamily: fonts.secondary[800],
-                    fontSize: MyDimensi / 3,
-                    marginBottom: 10,
-                }}>Daftar Produk</Text>
+        <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>Daftar Produk</Text>
             </View>
-            <View style={{
-                flexDirection: 'row',
-                padding: 10,
-            }}>
-                <View style={{
-                    flex: 1
-                }}>
-                    <View style={{
-                        borderWidth: 1,
-                        borderRadius: 10,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingHorizontal: 10,
-                        height: 50,
-                    }}>
-                        <Icon type='ionicon' name='search-outline' color={colors.border} />
-                        <TextInput value={key} ref={inputRef} onChangeText={x => {
-                            setKey(x);
-                            if (x.length > 0) {
-                                let filterd = data.filter(i => i.key.toLowerCase().indexOf(x.toLowerCase()) > -1);
-                                setData(filterd)
 
-                            } else if (x.length == 0) {
-                                setData(tmp);
-                            }
-                        }} placeholderTextColor={colors.border} placeholder='Cari berdasarkan nama atau barcode' style={{
-                            flex: 1,
-                            fontFamily: fonts.secondary[600],
-                            fontSize: MyDimensi / 4
-                        }} />
-                        {key.length > 0 && <TouchableWithoutFeedback onPress={() => {
+            <View style={styles.searchContainer}>
+                <View style={styles.searchInputContainer}>
+                    <Icon type='ionicon' name='search-outline' color={colors.border} />
+                    <TextInput
+                        ref={inputRef}
+                        value={key}
+                        onChangeText={handleSearch}
+                        placeholderTextColor={colors.border}
+                        placeholder="Cari nama atau barcode"
+                        style={styles.searchInput}
+                    />
+                    {key.length > 0 && (
+                        <TouchableWithoutFeedback onPress={() => {
                             setKey('');
-                            setData(tmp)
+                            setFilteredData(data);
                         }}>
                             <Icon type='ionicon' name='close' color={colors.black} />
-                        </TouchableWithoutFeedback>}
-                    </View>
+                        </TouchableWithoutFeedback>
+                    )}
                 </View>
+                <TouchableWithoutFeedback onPress={() => Alert.alert(MYAPP, 'Silahkan pilih tindakan', [
+                    {
+                        text: 'Batal'
+                    },
+                    {
+                        text: 'Edit Kategori',
+                        onPress: () => {
+                            console.log(selectedItems)
+                        }
+                    }, {
+                        text: 'Hapus',
+                        onPress: () => {
+                            axios.post(apiURL + 'delete_all', {
+                                id_produk: selectedItems
+                            }).then(res => {
+                                if (res.data == 200) {
+                                    const updatedData = data.filter(item => !selectedItems.includes(item.id));
+                                    setData(updatedData);
+                                    setFilteredData(updatedData);
+                                    setSelectedItems([]); // kosongkan setelah delete
+                                }
+                            }).catch(err => {
+                                console.error('Delete failed:', err);
+                            });
+                        }
+                    }
+                ])}>
+                    <View style={styles.iconButton}>
+                        {selectedItems.length > 0 &&
+
+                            <View style={{
+                                position: 'absolute',
+                                width: 20,
+                                height: 20,
+                                top: -10,
+                                right: 0,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                borderRadius: 10,
+                                backgroundColor: colors.primary,
+                            }}><Text style={{
+                                fontFamily: fonts.secondary[600],
+                                fontSize: 10,
+                                color: colors.white,
+                            }}>{selectedItems.length}</Text>
+
+                            </View>
+                        }
+                        <Icon type='ionicon' name='open-outline' />
+                    </View>
+                </TouchableWithoutFeedback>
+
+                <TouchableWithoutFeedback onPress={() => fetchData(true)}>
+                    <View style={styles.iconButton}>
+                        <Icon type='ionicon' name='refresh-outline' />
+                    </View>
+                </TouchableWithoutFeedback>
+
                 <TouchableWithoutFeedback onPress={__scanBarcode}>
-                    <View style={{
-                        marginLeft: 5,
-                        borderWidth: 1,
-                        borderRadius: 10,
-                        alignItems: 'center',
-                        paddingHorizontal: 10,
-                        height: 50,
-                        justifyContent: 'center'
-                    }}>
+                    <View style={styles.iconButton}>
                         <Icon type='ionicon' name='barcode-outline' />
                     </View>
                 </TouchableWithoutFeedback>
-                <TouchableWithoutFeedback onPress={() => {
-                    setModalVisible(true);
-                }}>
-                    <View style={{
-                        marginLeft: 5,
-                        borderWidth: 1,
-                        borderRadius: 10,
-                        alignItems: 'center',
-                        paddingHorizontal: 10,
-                        height: 50,
-                        justifyContent: 'center'
-                    }}>
-                        <Icon type='ionicon' name='funnel-outline' />
-                    </View>
-                </TouchableWithoutFeedback>
+
+
             </View>
 
-            {!loading &&
-
-                <View style={{
-                    flex: 1,
-                    position: 'relative'
-                }}>
-                    <FlatList data={data} renderItem={({ item, index }) => {
-                        return (
-                            <TouchableWithoutFeedback onPress={() => navigation.navigate('ProdukDetail', item)}>
-                                <View style={{
-                                    padding: 10,
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    borderBottomWidth: 1,
-                                    borderBottomColor: colors.border,
-                                }}>
-                                    <View>
-                                        <Image style={{
-                                            width: 50,
-                                            height: 50,
-                                        }} source={{
-                                            uri: item.image
-                                        }} />
-                                    </View>
-                                    <View style={{
-                                        flex: 1,
-                                        paddingLeft: 10,
-                                    }}>
-                                        <Text style={{
-                                            fontFamily: fonts.secondary[600],
-                                            fontSize: 14,
-                                            color: colors.black
-                                        }}>{item.nama_produk}</Text>
-                                        <Text style={{
-                                            fontFamily: fonts.secondary[400],
-                                            fontSize: 14,
-                                            color: colors.zavalabs
-                                        }}>Rp {new Intl.NumberFormat().format(item.harga)} | {item.kode_produk}</Text>
-                                    </View>
-                                    <Text style={{
-                                        fontFamily: fonts.secondary[600],
-                                        fontSize: 20,
-                                        color: item.stok <= item.minimal_stok && item.stok > 0 ? colors.warning : item.stok == 0 ? colors.danger : colors.black,
-                                    }}>{item.stok}</Text>
-                                </View>
-                            </TouchableWithoutFeedback>
-                        )
-                    }} />
-
-
+            {loading ? (
+                <View style={styles.loaderContainer}>
+                    <ActivityIndicator size="large" color={colors.primary} />
                 </View>
-            }
+            ) : (
+                <FlatList
+                    data={filteredData}
+                    renderItem={renderItem}
+                    keyExtractor={(item, index) => index.toString()}
+                    initialNumToRender={20}
+                    maxToRenderPerBatch={50}
+                    windowSize={10}
+                    removeClippedSubviews={true}
+                    updateCellsBatchingPeriod={50}
+                    getItemLayout={(data, index) => ({ length: 70, offset: 70 * index, index })}
+                    contentContainerStyle={{ paddingBottom: 100 }}
+                    onEndReachedThreshold={0.5}
+                    onEndReached={handleLoadMore}
+                    ListFooterComponent={isLoadMore && (
+                        <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 10 }} />
+                    )}
+                />
 
-            {loading && <View style={{
-                flex: 1,
-                padding: 20,
-                justifyContent: 'center',
-                alignItems: 'center'
-            }}>
-                <ActivityIndicator color={colors.primary} />
-            </View>}
+            )}
 
-            {user.level == 'Admin' &&
-                <View style={{
-                    position: 'absolute',
-                    bottom: 10,
-                    right: 10,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    width: 60,
-                    height: 60,
-                    borderRadius: 30,
-                    backgroundColor: colors.primary,
-                }}>
-                    <TouchableOpacity onPress={() => navigation.navigate('ProudukAdd')} style={{
-                        width: 60,
-                        height: 60,
-                        borderRadius: 30,
-                        justifyContent: 'center',
-                        alignItems: 'center'
-                    }}>
-                        <Icon type='ionicon' name='add' size={30} color={colors.white} />
-                    </TouchableOpacity>
-
-
-                </View>
-            }
-
+            {/* Modal Filter */}
             <Modal
                 animationType="slide"
                 transparent={true}
                 visible={modalVisible}
-                onRequestClose={() => {
-                    setModalVisible(!modalVisible);
-                }}>
-                <View style={{
-                    flex: 1,
-                    justifyContent: 'flex-end',
-
-                }}>
-                    <View style={{
-                        borderTopWidth: 1,
-                        borderTopColor: colors.border,
-                        padding: 20,
-                        height: windowHeight / 2,
-                        backgroundColor: '#FDFDFD',
-                    }}>
-                        <Text style={{
-                            fontFamily: fonts.secondary[600],
-                            fontSize: 20,
-                        }}>Letak Rak</Text>
-
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Letak Rak</Text>
                         <ScrollView>
-                            <FlatList data={RAK} renderItem={({ item }) => {
-                                return (
-                                    <TouchableWithoutFeedback onPress={() => {
-                                        if (item == 'Tampilkan Semua') {
-                                            setData(tmp)
-                                        } else {
-
-                                            setData(tmp.filter(i => i.letak_rak == item))
-                                        }
-                                        setModalVisible(false)
-                                    }}>
-                                        <View style={{
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            padding: 5,
-                                            borderRadius: 10,
-                                            borderWidth: 1,
-                                            marginVertical: 5,
-                                        }}>
-                                            <Icon type='ionicon' name='chevron-forward-circle-outline' />
-                                            <Text style={{
-                                                fontFamily: fonts.secondary[600],
-                                                fontSize: 14,
-                                                left: 5,
-                                            }}>{item}</Text>
-                                        </View>
-                                    </TouchableWithoutFeedback>
-                                )
-                            }} />
+                            {rakOptions.map((rak, index) => (
+                                <TouchableOpacity key={index} onPress={() => {
+                                    if (rak === 'Tampilkan Semua') {
+                                        setFilteredData(data);
+                                    } else {
+                                        setFilteredData(data.filter(i => i.letak_rak === rak));
+                                    }
+                                    setModalVisible(false);
+                                }}>
+                                    <View style={styles.rakItem}>
+                                        <Icon type='ionicon' name='chevron-forward-circle-outline' />
+                                        <Text style={styles.rakText}>{rak}</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
                         </ScrollView>
                     </View>
                 </View>
             </Modal>
-        </SafeAreaView >
-    )
+
+            {/* Button Tambah Produk */}
+            {user.level === 'Admin' && (
+                <TouchableOpacity
+                    onPress={() => navigation.navigate('ProudukAdd')}
+                    style={styles.addButton}
+                >
+                    <Icon type="ionicon" name="add" size={30} color={colors.white} />
+                </TouchableOpacity>
+            )}
+        </SafeAreaView>
+    );
+
+
 }
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+    checkbox: {
+        width: 24,
+        height: 24,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 10,
+    },
+    checkboxChecked: {
+        backgroundColor: colors.primary,
+        borderColor: colors.primary,
+    },
+    checkboxTick: {
+        color: 'white',
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    detailButton: {
+        marginTop: 10,
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        backgroundColor: colors.primary,
+        borderRadius: 5,
+        alignSelf: 'flex-start',
+    },
+    detailButtonText: {
+        color: 'white',
+        fontFamily: fonts.secondary[600],
+        fontSize: 12,
+    },
+
+    container: { flex: 1, backgroundColor: colors.white },
+    header: { padding: 10 },
+    headerTitle: { fontFamily: fonts.secondary[800], fontSize: MyDimensi / 3 },
+    searchContainer: { flexDirection: 'row', padding: 10 },
+    searchInputContainer: {
+        flex: 1,
+        borderWidth: 1,
+        borderRadius: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 10,
+        height: 50,
+    },
+    searchInput: { flex: 1, fontFamily: fonts.secondary[600], fontSize: MyDimensi / 4 },
+    iconButton: {
+        marginLeft: 5,
+        borderWidth: 1,
+        borderRadius: 10,
+        alignItems: 'center',
+        paddingHorizontal: 10,
+        height: 50,
+        justifyContent: 'center',
+    },
+    loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    itemContainer: { padding: 10, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: colors.border },
+    itemImage: { width: 50, height: 50 },
+    itemTextContainer: { flex: 1, paddingLeft: 10 },
+    itemTitle: { fontFamily: fonts.secondary[600], fontSize: 14, color: colors.black },
+    itemSubtitle: { fontFamily: fonts.secondary[400], fontSize: 14, color: colors.zavalabs },
+    itemStock: { fontFamily: fonts.secondary[600], fontSize: 20 },
+    modalContainer: { flex: 1, justifyContent: 'flex-end' },
+    modalContent: { padding: 20, height: windowHeight / 2, backgroundColor: '#FDFDFD', borderTopWidth: 1, borderTopColor: colors.border },
+    modalTitle: { fontFamily: fonts.secondary[600], fontSize: 20 },
+    rakItem: { flexDirection: 'row', alignItems: 'center', padding: 5, borderRadius: 10, borderWidth: 1, marginVertical: 5 },
+    rakText: { fontFamily: fonts.secondary[600], fontSize: 14, marginLeft: 5 },
+    addButton: { position: 'absolute', bottom: 10, right: 10, justifyContent: 'center', alignItems: 'center', width: 60, height: 60, borderRadius: 30, backgroundColor: colors.primary },
+});
