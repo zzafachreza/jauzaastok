@@ -24,6 +24,7 @@ import ZavalabsScanner from 'react-native-zavalabs-scanner';
 import SweetAlert from 'react-native-sweet-alert';
 import FastImage from 'react-native-fast-image';
 import { Alert } from 'react-native';
+import { showMessage } from 'react-native-flash-message';
 
 export default function Produk({ navigation, route }) {
     const [modalVisible, setModalVisible] = useState(false);
@@ -73,6 +74,12 @@ export default function Produk({ navigation, route }) {
 
 
     useEffect(() => {
+        getData('user').then(u => {
+            setUser(u);
+
+        })
+
+        fetchData(true);
         // if (isFocused) {
         //     // getData('produk').then(produk => {
         //     //     if (!produk) {
@@ -82,7 +89,7 @@ export default function Produk({ navigation, route }) {
         //     //     }
         //     // })
         // }
-        fetchData(true);
+
     }, []);
 
     const fetchData = async (reset = false, keyword = '') => {
@@ -97,8 +104,7 @@ export default function Produk({ navigation, route }) {
         else setLoading(true);
 
         try {
-            const userData = await getData('user');
-            setUser(userData);
+
 
             const response = await axios.post(apiURL + 'produk', {
                 limit,
@@ -157,7 +163,7 @@ export default function Produk({ navigation, route }) {
         });
     };
 
-    const renderItem = useCallback(({ item }) => {
+    const renderItem = ({ item }) => {
         const isChecked = selectedItems.includes(item.id);
 
         return (
@@ -220,7 +226,7 @@ export default function Produk({ navigation, route }) {
                 </View>
             </View>
         );
-    }, [selectedItems]);
+    };
 
 
     return (
@@ -250,61 +256,72 @@ export default function Produk({ navigation, route }) {
                         </TouchableWithoutFeedback>
                     )}
                 </View>
-                <TouchableWithoutFeedback onPress={() => Alert.alert(MYAPP, 'Silahkan pilih tindakan', [
-                    {
-                        text: 'Batal'
-                    },
-                    {
-                        text: 'Edit Kategori',
-                        onPress: () => {
-                            console.log(selectedItems);
-                            navigation.navigate('EditKategori', {
-                                id_produk: selectedItems
-                            })
-                        }
-                    }, {
-                        text: 'Hapus',
-                        onPress: () => {
-                            axios.post(apiURL + 'delete_all', {
-                                id_produk: selectedItems
-                            }).then(res => {
-                                if (res.data == 200) {
-                                    const updatedData = data.filter(item => !selectedItems.includes(item.id));
-                                    setData(updatedData);
-                                    setFilteredData(updatedData);
-                                    setSelectedItems([]); // kosongkan setelah delete
+                {user.level == 'Admin' &&
+                    <TouchableWithoutFeedback onPress={() => Alert.alert(MYAPP, 'Silahkan pilih tindakan', [
+                        {
+                            text: 'Batal'
+                        },
+                        {
+                            text: 'Edit Kategori',
+                            onPress: () => {
+                                console.log(selectedItems);
+                                if (selectedItems.length > 0) {
+                                    navigation.navigate('EditKategori', {
+                                        id_produk: selectedItems
+                                    })
+                                } else {
+                                    showMessage({ message: 'Tidak ada yang dipilih' })
                                 }
-                            }).catch(err => {
-                                console.error('Delete failed:', err);
-                            });
+                            }
+                        }, {
+                            text: 'Hapus',
+                            onPress: () => {
+                                if (selectedItems.length > 0) {
+                                    axios.post(apiURL + 'delete_all', {
+                                        id_produk: selectedItems
+                                    }).then(res => {
+                                        if (res.data == 200) {
+                                            const updatedData = data.filter(item => !selectedItems.includes(item.id));
+                                            setData(updatedData);
+                                            setFilteredData(updatedData);
+                                            setSelectedItems([]); // kosongkan setelah delete
+                                        }
+                                    }).catch(err => {
+                                        console.error('Delete failed:', err);
+                                    });
+                                } else {
+                                    showMessage({ message: 'Tidak ada yang dipilih' })
+                                }
+
+                            }
                         }
-                    }
-                ])}>
-                    <View style={styles.iconButton}>
-                        {selectedItems.length > 0 &&
+                    ])}>
+                        <View style={styles.iconButton}>
+                            {selectedItems.length > 0 &&
 
-                            <View style={{
-                                position: 'absolute',
-                                width: 20,
-                                height: 20,
-                                top: -10,
-                                right: 0,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                borderRadius: 10,
-                                backgroundColor: colors.primary,
-                            }}><Text style={{
-                                fontFamily: fonts.secondary[600],
-                                fontSize: 10,
-                                color: colors.white,
-                            }}>{selectedItems.length}</Text>
+                                <View style={{
+                                    position: 'absolute',
+                                    width: 20,
+                                    height: 20,
+                                    top: -10,
+                                    right: 0,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    borderRadius: 10,
+                                    backgroundColor: colors.primary,
+                                }}><Text style={{
+                                    fontFamily: fonts.secondary[600],
+                                    fontSize: 10,
+                                    color: colors.white,
+                                }}>{selectedItems.length}</Text>
 
-                            </View>
-                        }
-                        <Icon type='ionicon' name='open-outline' />
-                    </View>
-                </TouchableWithoutFeedback>
+                                </View>
+                            }
+                            <Icon type='ionicon' name='open-outline' />
+                        </View>
+                    </TouchableWithoutFeedback>
 
+                }
                 <TouchableWithoutFeedback onPress={() => fetchData(true)}>
                     <View style={styles.iconButton}>
                         <Icon type='ionicon' name='refresh-outline' />
