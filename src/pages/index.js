@@ -44,6 +44,7 @@ import StokOut from './Produk/StokOut';
 import ProdukEdit from './Produk/ProdukEdit';
 import ProudukAdd from './Produk/ProudukAdd';
 import ProdukMinimal from './Produk/ProudukMinimal';
+import EditKategori from './Produk/EditKategori';
 
 
 
@@ -55,6 +56,7 @@ import ProdukMinimal from './Produk/ProudukMinimal';
 export {
   Splash,
   Home,
+  EditKategori,
   Login,
   Register,
   Kursioner,

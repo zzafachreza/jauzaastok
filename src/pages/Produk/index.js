@@ -14,7 +14,7 @@ import {
     StyleSheet,
 } from 'react-native';
 import { windowWidth, windowHeight, fonts, MyDimensi } from '../../utils/fonts';
-import { apiURL, getData, MYAPP } from '../../utils/localStorage';
+import { apiURL, getData, MYAPP, storeData } from '../../utils/localStorage';
 import { colors } from '../../utils/colors';
 import { MyButton, MyGap, MyHeader } from '../../components';
 import { Icon } from 'react-native-elements';
@@ -61,6 +61,27 @@ export default function Produk({ navigation, route }) {
 
 
     useEffect(() => {
+        if (isFocused) {
+
+            getData('produk').then(res => {
+                console.log('home', res);
+                setData(res);
+                setFilteredData(res);
+            });
+        }
+    }, [isFocused]);
+
+
+    useEffect(() => {
+        // if (isFocused) {
+        //     // getData('produk').then(produk => {
+        //     //     if (!produk) {
+        //     //         fetchData(true);
+        //     //     } else {
+        //     //         setData(produk);
+        //     //     }
+        //     // })
+        // }
         fetchData(true);
     }, []);
 
@@ -89,10 +110,12 @@ export default function Produk({ navigation, route }) {
 
             if (reset) {
                 setData(newData);
+                storeData('produk', newData);
                 setFilteredData(newData);
             } else {
                 const combined = [...data, ...newData];
                 setData(combined);
+                storeData('produk', combined);
                 setFilteredData(combined);
             }
 
@@ -156,6 +179,11 @@ export default function Produk({ navigation, route }) {
                 />
 
                 <View style={styles.itemTextContainer}>
+                    <Text style={{
+                        ...styles.itemTitle,
+                        color: colors.primary,
+                        fontFamily: fonts.secondary[800]
+                    }}>{item.nama_kategori}</Text>
                     <Text style={styles.itemTitle}>{item.nama_produk}</Text>
                     <Text style={styles.itemSubtitle}>
                         Rp {new Intl.NumberFormat().format(item.harga)} | {item.kode_produk}
@@ -171,12 +199,24 @@ export default function Produk({ navigation, route }) {
                         {item.stok}
                     </Text>
 
-                    <TouchableOpacity
-                        style={styles.detailButton}
-                        onPress={() => navigation.navigate('ProdukDetail', item)}
-                    >
-                        <Text style={styles.detailButtonText}>Detail</Text>
-                    </TouchableOpacity>
+                    <View style={{
+                        flexDirection: 'row'
+                    }}>
+                        <TouchableOpacity
+                            style={styles.detailButton}
+                            onPress={() => navigation.navigate('ProdukDetail', item)}
+                        >
+                            <Text style={styles.detailButtonText}>Detail</Text>
+                        </TouchableOpacity>
+                        {user.level === 'Admin' &&
+                            <TouchableOpacity
+                                style={styles.editButton}
+                                onPress={() => navigation.navigate('ProdukEdit', item)}
+                            >
+                                <Text style={{ ...styles.detailButtonText, color: colors.primary }}>Edit</Text>
+                            </TouchableOpacity>
+                        }
+                    </View>
                 </View>
             </View>
         );
@@ -203,7 +243,8 @@ export default function Produk({ navigation, route }) {
                     {key.length > 0 && (
                         <TouchableWithoutFeedback onPress={() => {
                             setKey('');
-                            setFilteredData(data);
+                            fetchData(true);
+                            inputRef.current.focus();
                         }}>
                             <Icon type='ionicon' name='close' color={colors.black} />
                         </TouchableWithoutFeedback>
@@ -216,7 +257,10 @@ export default function Produk({ navigation, route }) {
                     {
                         text: 'Edit Kategori',
                         onPress: () => {
-                            console.log(selectedItems)
+                            console.log(selectedItems);
+                            navigation.navigate('EditKategori', {
+                                id_produk: selectedItems
+                            })
                         }
                     }, {
                         text: 'Hapus',
@@ -372,6 +416,16 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
         paddingHorizontal: 10,
         backgroundColor: colors.primary,
+        borderRadius: 5,
+        alignSelf: 'flex-start',
+    },
+
+    editButton: {
+        marginLeft: 5,
+        marginTop: 10,
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        backgroundColor: colors.secondary,
         borderRadius: 5,
         alignSelf: 'flex-start',
     },

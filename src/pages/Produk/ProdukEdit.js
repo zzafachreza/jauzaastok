@@ -30,11 +30,17 @@ export default function ProudukEdit({ navigation, route }) {
 
     const [kategori, setKategori] = useState([]);
     const [loading, setLoading] = useState(false);
-    console.log(route.params)
+    const [old, setOld] = useState([]);
     const [kirim, setKirim] = useState(route.params)
     useEffect(() => {
+
+        getData('produk').then(res => {
+
+            setOld(res);
+        })
+
         axios.post(apiURL + 'kategori').then(res => {
-            console.log(res.data);
+
             setKategori(res.data);
 
         });
@@ -48,12 +54,20 @@ export default function ProudukEdit({ navigation, route }) {
         console.log(kirim);
         setLoading(true);
         axios.post(apiURL + 'produk_update', kirim).then(res => {
-            console.log(res.data);
+            console.log('newdata', res.data.newdata);
+            setLoading(false);
             if (res.data.status == 200) {
                 showMessage({
                     type: 'success',
                     message: res.data.message
                 });
+
+                const NEWDATA = old.map(item =>
+                    item.id_produk == route.params.id_produk ? res.data.newdata[0] : item
+                );
+                console.log(NEWDATA);
+                storeData('produk', NEWDATA)
+
                 navigation.goBack();
             }
         })
@@ -171,21 +185,21 @@ export default function ProudukEdit({ navigation, route }) {
                 }} />
 
                 <MyGap jarak={10} />
-                <MyInput label="Stok" value={kirim.stok} keyboardType='number-pad' onChangeText={x => {
+                <MyInput label="Stok" value={kirim.stok.toString()} keyboardType='number-pad' onChangeText={x => {
                     setKirim({
                         ...kirim,
                         stok: x
                     })
                 }} />
                 <MyGap jarak={10} />
-                <MyInput label="Harga" value={kirim.harga} keyboardType='number-pad' onChangeText={x => {
+                <MyInput label="Harga" value={kirim.harga.toString()} keyboardType='number-pad' onChangeText={x => {
                     setKirim({
                         ...kirim,
                         harga: x
                     })
                 }} />
                 <MyGap jarak={10} />
-                <MyInput label="Minimal Stok" value={kirim.minimal_stok} keyboardType='number-pad' onChangeText={x => {
+                <MyInput label="Minimal Stok" value={kirim.minimal_stok.toString()} keyboardType='number-pad' onChangeText={x => {
                     setKirim({
                         ...kirim,
                         minimal_stok: x

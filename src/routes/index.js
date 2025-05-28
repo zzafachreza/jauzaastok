@@ -48,6 +48,7 @@ import {
   ProudukAdd,
   ProdukEdit,
   ProdukMinimal,
+  EditKategori,
 
 
 } from '../pages';
@@ -122,6 +123,15 @@ export default function Router() {
       <Stack.Screen
         name="ProdukEdit"
         component={ProdukEdit}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+
+      <Stack.Screen
+        name="EditKategori"
+        component={EditKategori}
         options={{
           headerShown: false,
         }}
